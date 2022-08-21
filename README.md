@@ -3,6 +3,7 @@ In this project we are reading ADC values for current and voltage and displaying
 For current measurement we are using ACS712 module of desired rating.
 For voltage measurement we have created simple voltage divider using potentiometer.
 Potentiometer is set to give 4.8 VDC when connected to 24VDC source.
+Here ADC is configured in free running mode to give interrupt when change is observed by MCU.
 
 ![interruptadc](https://user-images.githubusercontent.com/111571035/185778758-01a48205-f259-4bf8-b0bd-288a73307e70.SVG)
 
