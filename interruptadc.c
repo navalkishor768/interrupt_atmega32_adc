@@ -6,21 +6,20 @@
 
 
 
-#define Nbitdiv  		512.0  // 512 for 10 bit adc, 128 for 8 bit adc
-#define factor   		(5/(Nbitdiv*2))
-//#define mVperA		0.2		// for ACS712 5A module
-#define mVperA			0.1		// for ACS712 20A module
-//#define mVperA		0.066		// for ACS712 30A module
-#define factor2			(5/Nbitdiv*2)
-#define voltagemeasure	24
-#define fullscale		4.8
-#define batvscale		(voltagemeasure/fullscale)
-#define dcwatthr		(v*btv)
+#define ADC_RAW_DIV  		512.0				// 512 for 10 bit adc, 128 for 8 bit adc
+#define ADC_REAL_MUL   		(5/(ADC_RAW_DIV*2))
+//#define MV_PER_AMP		0.2						// for ACS712 5A module
+#define MV_PER_AMP			0.1						// for ACS712 20A module
+//#define MV_PER_AMP		0.066					// for ACS712 30A module
+#define VOLTAGE_MAX_READ	24
+#define FULLSCALE_VADC_READ	4.8
+#define ADC_REAL_V_MUL		(VOLTAGE_MAX_READ/FULLSCALE_VADC_READ)
+#define dcwatthr			(v*btv)
 
 
 unsigned char str[20],st[1],str2[20];
-unsigned int i=0,adval,j=0,k;
-float z=0,v,vout,cout;
+unsigned int i=0,adval,current_adc_val=0,voltage_adc_val=0;
+float current_adc_val_div=0,vout,cout;
 
 void init_ADCINT()
 {	
@@ -44,14 +43,14 @@ int main()
 	while(1) 
 	{	
 		
-		z=j - Nbitdiv;		
-		cout=factor * z / mVperA;
+		current_adc_val_div=current_adc_val - ADC_RAW_DIV;		
+		cout=ADC_REAL_MUL * current_adc_val_div / MV_PER_AMP;
 		dtostrf(cout,2,2,str2);
 		
 		sprintf(str,"Current is %sA",str2);
 		uart_txstr(str);
 		
-		vout=k*factor*batvscale;
+		vout=voltage_adc_val*ADC_REAL_MUL*ADC_REAL_V_MUL;
 		
 		dtostrf(vout,2,2,str2);
 		sprintf(str," Bat. Voltage is %sV",str2);
@@ -74,20 +73,20 @@ ISR(ADC_vect){
 	
 	if(i==0)
 	{
-		j=adval;
+		current_adc_val=adval;
 	} 
 	
 	else if(i==1)
 	{
-		k=adval;
+		voltage_adc_val=adval;
 	}
 	
 	i++;
 	if(i>=2)
 	{i=0;}
 	
-	ADMUX=0b01100000;// ADLAR=1 i.e. left adjusted result // 	8bit
-	ADMUX=ADMUX+i;
+	ADMUX=0b01100000;	// ADLAR=1 i.e. left adjusted result // 	8bit
+	ADMUX=ADMUX+i;		// selecting adc pin to read
 	ADCSRA |= (1<<ADSC);
 	
 	
